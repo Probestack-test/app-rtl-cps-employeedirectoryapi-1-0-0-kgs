@@ -1,0 +1,62 @@
+{
+  "info": {
+    "name": "employeedirectoryapi-1-0-0 Postman Collection",
+    "description": "Operational baseline generated from observed Kong Konnect configuration.\n\nOpenAPI version: 3.0.3",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://hr-directory.svc.prod.aldermoor.example/api",
+      "type": "string",
+      "description": "Override with the base URL of the deployed Kong gateway."
+    }
+  ],
+  "item": [
+    {
+      "name": "employeedirectoryapi-1-0-0--getemployees",
+      "request": {
+        "method": "GET",
+        "description": "employeedirectoryapi-1-0-0--getemployees\n\nResponses:\n- default: Runtime response semantics are not observable from Kong configuration.",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/internal/directory/1.0.0/employees",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "internal",
+            "directory",
+            "1.0.0",
+            "employees"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "employeedirectoryapi-1-0-0--getorg-units",
+      "request": {
+        "method": "GET",
+        "description": "employeedirectoryapi-1-0-0--getorg-units\n\nResponses:\n- default: Runtime response semantics are not observable from Kong configuration.",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/internal/directory/1.0.0/org-units",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "internal",
+            "directory",
+            "1.0.0",
+            "org-units"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
