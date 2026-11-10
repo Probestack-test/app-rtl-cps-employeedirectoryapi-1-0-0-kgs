@@ -1,0 +1,585 @@
+_format_version: "3.0"
+_transform: true
+
+########################################################
+# SERVICES
+########################################################
+
+services:
+  - name: employeedirectoryapi-1-0-0
+    host: hr-directory.svc.prod.aldermoor.example
+    port: 443
+    protocol: https
+    path: /api
+    retries: 5
+    connect_timeout: 60000
+    write_timeout: 60000
+    read_timeout: 60000
+    enabled: true
+    tags:
+      - wso2-source-id:aafd0c61-095a-4160-8218-867f23954826
+      - migrated-by:forgeshift-wso2-migrator
+      - internal
+      - legacy
+      - hr
+      - directory
+    routes:
+      - name: employeedirectoryapi-1-0-0--getorg-units-orgunitid-members
+        protocols:
+          - http
+          - https
+        methods:
+          - GET
+        paths:
+          - ~/internal/directory/1\.0\.0/org\-units/(?<orgUnitId>[^/]+)/members$
+        strip_path: false
+        preserve_host: false
+        https_redirect_status_code: 426
+        regex_priority: 0
+        path_handling: v0
+        request_buffering: true
+        response_buffering: true
+        tags:
+          - wso2-source-id:aafd0c61-095a-4160-8218-867f23954826
+          - migrated-by:forgeshift-wso2-migrator
+          - internal
+          - legacy
+          - hr
+          - directory
+          - wso2-resource:_org-units_{orgUnitId}_members
+          - wso2-verb:GET
+      - name: employeedirectoryapi-1-0-0--getemployees
+        protocols:
+          - http
+          - https
+        methods:
+          - GET
+        paths:
+          - /internal/directory/1.0.0/employees
+        strip_path: false
+        preserve_host: false
+        https_redirect_status_code: 426
+        regex_priority: 0
+        path_handling: v0
+        request_buffering: true
+        response_buffering: true
+        tags:
+          - wso2-source-id:aafd0c61-095a-4160-8218-867f23954826
+          - migrated-by:forgeshift-wso2-migrator
+          - internal
+          - legacy
+          - hr
+          - directory
+          - wso2-resource:_employees
+          - wso2-verb:GET
+      - name: employeedirectoryapi-1-0-0--getorg-units
+        protocols:
+          - http
+          - https
+        methods:
+          - GET
+        paths:
+          - /internal/directory/1.0.0/org-units
+        strip_path: false
+        preserve_host: false
+        https_redirect_status_code: 426
+        regex_priority: 0
+        path_handling: v0
+        request_buffering: true
+        response_buffering: true
+        tags:
+          - wso2-source-id:aafd0c61-095a-4160-8218-867f23954826
+          - migrated-by:forgeshift-wso2-migrator
+          - internal
+          - legacy
+          - hr
+          - directory
+          - wso2-resource:_org-units
+          - wso2-verb:GET
+      - name: employeedirectoryapi-1-0-0--getemployees-employeeid
+        protocols:
+          - http
+          - https
+        methods:
+          - GET
+        paths:
+          - ~/internal/directory/1\.0\.0/employees/(?<employeeId>[^/]+)$
+        strip_path: false
+        preserve_host: false
+        https_redirect_status_code: 426
+        regex_priority: 0
+        path_handling: v0
+        request_buffering: true
+        response_buffering: true
+        tags:
+          - wso2-source-id:aafd0c61-095a-4160-8218-867f23954826
+          - migrated-by:forgeshift-wso2-migrator
+          - internal
+          - legacy
+          - hr
+          - directory
+          - wso2-resource:_employees_{employeeId}
+          - wso2-verb:GET
+
+########################################################
+# PLUGINS
+########################################################
+
+plugins:
+  - name: basic-auth
+    route: employeedirectoryapi-1-0-0--getemployees-employeeid
+    enabled: true
+    protocols:
+      - grpc
+      - grpcs
+      - http
+      - https
+      - ws
+      - wss
+    config:
+      anonymous: null
+      brute_force_protection:
+        redis:
+          cloud_authentication: null
+          database: 0
+          host: null
+          password: "[REDACTED]"
+          port: 6379
+          server_name: null
+          ssl: false
+          ssl_verify: false
+          timeout: 2000
+          username: null
+        strategy: off
+      hide_credentials: true
+      principals:
+        directory: default
+        enabled: false
+        error_on_miss: true
+      realm: service
+    tags:
+      - wso2-source-id:aafd0c61-095a-4160-8218-867f23954826
+      - migrated-by:forgeshift-wso2-migrator
+      - internal
+      - legacy
+      - hr
+      - directory
+  - name: pre-function
+    service: employeedirectoryapi-1-0-0
+    enabled: true
+    protocols:
+      - grpc
+      - grpcs
+      - http
+      - https
+    config:
+      access:
+        - "-- Apigee path rewrite (apigee-kong-migrator)\nlocal route        = kong.router.get_route()\nlocal service      = kong.router.get_service()\nlocal service_path = (service and service.path) or \"/\"\n-- Check for apigee-strip-len tag set on suffix routes during migration\nlocal strip_len = nil\nif route and route.tags then\n  for _, tag in ipairs(route.tags) do\n    if tag:sub(1, 17) == \"apigee-strip-len:\" then\n      strip_len = tonumber(tag:sub(18))\n      break\n    end\n  end\nend\n-- Fall back to route path length if no tag (covers normal routes)\nif not strip_len then\n  local route_path = (route and route.paths and route.paths[1]) or \"/\"\n  if route_path:sub(1, 1) == \"~\" then route_path = route_path:sub(2) end\n  strip_len = #route_path\nend\nlocal incoming = kong.request.get_path()\nlocal suffix = \"/\"\nif #incoming >= strip_len then\n  suffix = incoming:sub(strip_len + 1)\nend\nif suffix == \"\" then suffix = \"/\" end\nlocal clean_target = service_path:gsub(\"/+$\", \"\")\nif suffix:sub(1, 1) ~= \"/\" then suffix = \"/\" .. suffix end\nkong.service.request.set_path(clean_target .. suffix)\n"
+      body_filter:
+        []
+      certificate:
+        []
+      functions:
+        []
+      header_filter:
+        []
+      log:
+        []
+      rewrite:
+        []
+      ws_client_frame:
+        []
+      ws_close:
+        []
+      ws_handshake:
+        []
+      ws_upstream_frame:
+        []
+    tags:
+      - global
+      - apigee-path-rewrite
+  - name: basic-auth
+    route: employeedirectoryapi-1-0-0--getemployees
+    enabled: true
+    protocols:
+      - grpc
+      - grpcs
+      - http
+      - https
+      - ws
+      - wss
+    config:
+      anonymous: null
+      brute_force_protection:
+        redis:
+          cloud_authentication: null
+          database: 0
+          host: null
+          password: "[REDACTED]"
+          port: 6379
+          server_name: null
+          ssl: false
+          ssl_verify: false
+          timeout: 2000
+          username: null
+        strategy: off
+      hide_credentials: true
+      principals:
+        directory: default
+        enabled: false
+        error_on_miss: true
+      realm: service
+    tags:
+      - wso2-source-id:aafd0c61-095a-4160-8218-867f23954826
+      - migrated-by:forgeshift-wso2-migrator
+      - internal
+      - legacy
+      - hr
+      - directory
+  - name: request-transformer
+    route: employeedirectoryapi-1-0-0--getemployees-employeeid
+    enabled: true
+    protocols:
+      - grpc
+      - grpcs
+      - http
+      - https
+    config:
+      add:
+        body:
+          []
+        headers:
+          []
+        querystring:
+          []
+      append:
+        body:
+          []
+        headers:
+          []
+        querystring:
+          []
+      http_method: null
+      remove:
+        body:
+          []
+        headers:
+          []
+        querystring:
+          []
+      rename:
+        body:
+          []
+        headers:
+          []
+        querystring:
+          []
+      replace:
+        body:
+          []
+        headers:
+          []
+        querystring:
+          []
+        uri: /api/employees/$(uri_captures.employeeId)
+    tags:
+      - wso2-source-id:aafd0c61-095a-4160-8218-867f23954826
+      - migrated-by:forgeshift-wso2-migrator
+      - internal
+      - legacy
+      - hr
+      - directory
+  - name: rate-limiting
+    service: employeedirectoryapi-1-0-0
+    enabled: true
+    protocols:
+      - grpc
+      - grpcs
+      - http
+      - https
+    config:
+      day: null
+      error_code: 429
+      error_message: API rate limit exceeded
+      fault_tolerant: true
+      header_name: null
+      hide_client_headers: false
+      hour: null
+      limit_by: consumer
+      minute: 100000
+      month: null
+      path: null
+      policy: local
+      redis:
+        cloud_authentication: null
+        database: 0
+        host: null
+        password: "[REDACTED]"
+        port: 6379
+        server_name: null
+        ssl: false
+        ssl_verify: false
+        timeout: 2000
+        username: null
+      redis_database: 0
+      redis_host: null
+      redis_password: "[REDACTED]"
+      redis_port: 6379
+      redis_server_name: null
+      redis_ssl: false
+      redis_ssl_verify: false
+      redis_timeout: 2000
+      redis_username: null
+      second: null
+      sync_rate: -1
+      year: null
+    tags:
+      - wso2-source-id:aafd0c61-095a-4160-8218-867f23954826
+      - migrated-by:forgeshift-wso2-migrator
+      - internal
+      - legacy
+      - hr
+      - directory
+      - wso2-tier:AldermoorInternal
+  - name: request-transformer
+    route: employeedirectoryapi-1-0-0--getorg-units
+    enabled: true
+    protocols:
+      - grpc
+      - grpcs
+      - http
+      - https
+    config:
+      add:
+        body:
+          []
+        headers:
+          []
+        querystring:
+          []
+      append:
+        body:
+          []
+        headers:
+          []
+        querystring:
+          []
+      http_method: null
+      remove:
+        body:
+          []
+        headers:
+          []
+        querystring:
+          []
+      rename:
+        body:
+          []
+        headers:
+          []
+        querystring:
+          []
+      replace:
+        body:
+          []
+        headers:
+          []
+        querystring:
+          []
+        uri: /api/org-units
+    tags:
+      - wso2-source-id:aafd0c61-095a-4160-8218-867f23954826
+      - migrated-by:forgeshift-wso2-migrator
+      - internal
+      - legacy
+      - hr
+      - directory
+  - name: basic-auth
+    route: employeedirectoryapi-1-0-0--getorg-units
+    enabled: true
+    protocols:
+      - grpc
+      - grpcs
+      - http
+      - https
+      - ws
+      - wss
+    config:
+      anonymous: null
+      brute_force_protection:
+        redis:
+          cloud_authentication: null
+          database: 0
+          host: null
+          password: "[REDACTED]"
+          port: 6379
+          server_name: null
+          ssl: false
+          ssl_verify: false
+          timeout: 2000
+          username: null
+        strategy: off
+      hide_credentials: true
+      principals:
+        directory: default
+        enabled: false
+        error_on_miss: true
+      realm: service
+    tags:
+      - wso2-source-id:aafd0c61-095a-4160-8218-867f23954826
+      - migrated-by:forgeshift-wso2-migrator
+      - internal
+      - legacy
+      - hr
+      - directory
+  - name: request-transformer
+    route: employeedirectoryapi-1-0-0--getemployees
+    enabled: true
+    protocols:
+      - grpc
+      - grpcs
+      - http
+      - https
+    config:
+      add:
+        body:
+          []
+        headers:
+          []
+        querystring:
+          []
+      append:
+        body:
+          []
+        headers:
+          []
+        querystring:
+          []
+      http_method: null
+      remove:
+        body:
+          []
+        headers:
+          []
+        querystring:
+          []
+      rename:
+        body:
+          []
+        headers:
+          []
+        querystring:
+          []
+      replace:
+        body:
+          []
+        headers:
+          []
+        querystring:
+          []
+        uri: /api/employees
+    tags:
+      - wso2-source-id:aafd0c61-095a-4160-8218-867f23954826
+      - migrated-by:forgeshift-wso2-migrator
+      - internal
+      - legacy
+      - hr
+      - directory
+  - name: request-transformer
+    route: employeedirectoryapi-1-0-0--getorg-units-orgunitid-members
+    enabled: true
+    protocols:
+      - grpc
+      - grpcs
+      - http
+      - https
+    config:
+      add:
+        body:
+          []
+        headers:
+          []
+        querystring:
+          []
+      append:
+        body:
+          []
+        headers:
+          []
+        querystring:
+          []
+      http_method: null
+      remove:
+        body:
+          []
+        headers:
+          []
+        querystring:
+          []
+      rename:
+        body:
+          []
+        headers:
+          []
+        querystring:
+          []
+      replace:
+        body:
+          []
+        headers:
+          []
+        querystring:
+          []
+        uri: /api/org-units/$(uri_captures.orgUnitId)/members
+    tags:
+      - wso2-source-id:aafd0c61-095a-4160-8218-867f23954826
+      - migrated-by:forgeshift-wso2-migrator
+      - internal
+      - legacy
+      - hr
+      - directory
+  - name: basic-auth
+    route: employeedirectoryapi-1-0-0--getorg-units-orgunitid-members
+    enabled: true
+    protocols:
+      - grpc
+      - grpcs
+      - http
+      - https
+      - ws
+      - wss
+    config:
+      anonymous: null
+      brute_force_protection:
+        redis:
+          cloud_authentication: null
+          database: 0
+          host: null
+          password: "[REDACTED]"
+          port: 6379
+          server_name: null
+          ssl: false
+          ssl_verify: false
+          timeout: 2000
+          username: null
+        strategy: off
+      hide_credentials: true
+      principals:
+        directory: default
+        enabled: false
+        error_on_miss: true
+      realm: service
+    tags:
+      - wso2-source-id:aafd0c61-095a-4160-8218-867f23954826
+      - migrated-by:forgeshift-wso2-migrator
+      - internal
+      - legacy
+      - hr
+      - directory
+
+########################################################
+# UPSTREAMS + TARGETS
+########################################################
+
+upstreams:
+  []
